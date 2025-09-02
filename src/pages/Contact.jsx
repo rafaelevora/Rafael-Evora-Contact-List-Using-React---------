@@ -9,61 +9,47 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import useGlobalReducer  from "../hooks/useGlobalReducer/"
 import { ContactCard } from "../components/ContactCard"
+import { fetchAllContacts, deleteContact } from "../lib/fetch";
 
 
 export const Contact = () => {
-    const { store, dispatch } = useGlobalReducer();
+  const { store, dispatch } = useGlobalReducer();
 
-    useEffect(() => {
-        fetchAllContacts();
-    }, [])
+  useEffect(() => {
+    fetchAllContacts(dispatch);
+  }, []);
 
-    const fetchAllContacts = async () => {
-        const response = await fetch(`https://playground.4geeks.com/contact/agendas/rafael/contacts`)
-        try {
-            if (!response.ok) {
-                throw new Error(response.status);
-            }
-            const data = await response.json();
-            // console.log(data.contacts);
-            // we need to be able to save the contacts in the store
-            // to accomplish this, we need to create a dispatch to set the contact key in the store
-
-            dispatch({
-                type: 'fetchedContacts',
-                payload: data.contacts,
-            })
-        }
-        catch (error){
-            console.error("Error getting agenda. Check if URL is incorrect or if that agenda doesn't exists.", error)
-        }
-    }
-
-return (
-    <>
-        <div className="container">
-            {
-                store && !store.contacts
-                ?
-                <h1>Loading...</h1>
-                :
-                store.contacts.map(contact => {
-                    return (
-                        <div className="card" key={contact.id}>
-                            <ContactCard 
-                                name={contact.name}
-                                address={contact.address}
-                                phone={contact.phone}
-                                email={contact.email}
-                            />
-                            <button>Edit</button>
-                            <button>Del</button>
-                        </div>
-                    )
-                })
-            }
-        </div>
-    </>
-
-    );
-}
+  return (
+    <div className="container mt-4">
+      {!store || !store.contacts ? (
+        <h1>Loading...</h1>
+      ) : (
+        store.contacts.map((contact) => (
+          <div className="d-flex justify-content-center mb-4" key={contact.id}>
+            <div className="card col-6 p-3">
+              <ContactCard
+                name={contact.name}
+                address={contact.address}
+                phone={contact.phone}
+                email={contact.email}
+              />
+              
+              {/* Buttons wrapper */}
+              <div className="d-flex justify-content-between mt-3">
+                <Link to={`/edit/${contact.id}`} className="btn btn-primary flex-fill me-2">
+                  Edit
+                </Link>
+                <button
+                  className="btn btn-danger flex-fill ms-2"
+                  onClick={() => deleteContact(contact.id, dispatch)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
